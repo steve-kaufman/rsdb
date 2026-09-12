@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{DatabaseId, SchemaId, TableId};
+use super::{DatabaseId, SchemaId, TableId, TableSchema};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DDLRequest {

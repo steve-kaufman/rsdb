@@ -1,4 +1,4 @@
-use rsdb::Request;
+use rsdb::interface::Request;
 use std::{
     io::BufReader,
     net::{TcpListener, TcpStream},
