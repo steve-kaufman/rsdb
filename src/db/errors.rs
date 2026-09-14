@@ -40,6 +40,8 @@ pub enum Error {
     },
     // Tried to deserialize with an empty schema
     DeserializeEmptySchema,
+    // Tried to write an incorrect number of bytes as a page
+    InvalidPageSize(usize),
 }
 
 impl Error {
