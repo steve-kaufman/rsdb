@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::db::{ColumnDefinition, Datum};
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Error {
     // Error during I/O operation, e.g. read
@@ -13,8 +15,36 @@ pub enum Error {
     // Found invalid UTF-8 bytes while parsing text
     InvalidUtf8(String),
     // Tagged text length was greater than number of bytes available
-    NotEnoughTextBytes { len: usize, bytes_read: usize },
+    NotEnoughTextBytes {
+        len: usize,
+        bytes_read: usize,
+    },
     // Attempted to serialize text with length greater than u16::MAX (65,535).
     // Contains length of unserializable text
     TextOverflow(usize),
+    // Cannot serialize an empty tuple
+    SerializeEmptyTuple,
+    // Tuples must have same number of items as schema
+    TupleSchemaLenMismatch {
+        tuple_len: usize,
+        schema_len: usize,
+    },
+    // Tuple datums must have a compatible data type with the corresponding column definition
+    TupleSchemaTypeMismatch {
+        column_definition: ColumnDefinition,
+        datum: Datum,
+    },
+    // Tried to write a null to a non-nullable column
+    NullMismatch {
+        column_definition: ColumnDefinition,
+    },
+}
+
+impl Error {
+    pub fn tuple_schema_type_mismatch(column_definition: &ColumnDefinition, datum: &Datum) -> Self {
+        Self::TupleSchemaTypeMismatch {
+            column_definition: column_definition.clone(),
+            datum: datum.clone(),
+        }
+    }
 }
