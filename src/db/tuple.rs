@@ -26,7 +26,12 @@ pub fn serialize_tuple(buf: &mut impl Write, schema: &Schema, tuple: &Tuple) -> 
 mod tests {
     use std::io::Cursor;
 
-    use crate::db::{ColumnDefinition, DataType};
+    use uuid::Uuid;
+
+    use crate::db::{
+        ColumnDefinition, DataType, serialize_float, serialize_int, serialize_null, serialize_text,
+        serialize_uuid,
+    };
 
     use super::*;
 
@@ -70,5 +75,93 @@ mod tests {
                 schema_len: 2
             })
         );
+    }
+
+    #[test]
+    fn test_serialize() {
+        let schema: Schema = vec![
+            ColumnDefinition {
+                name: "id".to_string(),
+                nullable: false,
+                data_type: DataType::Uuid,
+            },
+            ColumnDefinition {
+                name: "balance".to_string(),
+                nullable: false,
+                data_type: DataType::Float,
+            },
+            ColumnDefinition {
+                name: "first_name".to_string(),
+                nullable: true,
+                data_type: DataType::Text,
+            },
+            ColumnDefinition {
+                name: "last_name".to_string(),
+                nullable: true,
+                data_type: DataType::Text,
+            },
+            ColumnDefinition {
+                name: "email".to_string(),
+                nullable: false,
+                data_type: DataType::Text,
+            },
+            ColumnDefinition {
+                name: "followers".to_string(),
+                nullable: false,
+                data_type: DataType::Integer,
+            },
+        ];
+
+        // All nullables non-null
+
+        let mut actual = vec![];
+        let id = Uuid::new_v4();
+        let tuple: Tuple = vec![
+            Some(Datum::Uuid(id)),
+            Some(Datum::Float(123.456)),
+            Some(Datum::Text("John".to_string())),
+            Some(Datum::Text("Doe".to_string())),
+            Some(Datum::Text("john.doe@example.com".to_string())),
+            Some(Datum::Integer(123)),
+        ];
+
+        serialize_tuple(&mut actual, &schema, &tuple).unwrap();
+
+        let mut expected = vec![];
+        serialize_uuid(&mut expected, id).unwrap();
+        serialize_float(&mut expected, 123.456).unwrap();
+        serialize_null(&mut expected, false).unwrap();
+        serialize_text(&mut expected, "John").unwrap();
+        serialize_null(&mut expected, false).unwrap();
+        serialize_text(&mut expected, "Doe").unwrap();
+        serialize_text(&mut expected, "john.doe@example.com").unwrap();
+        serialize_int(&mut expected, 123).unwrap();
+
+        assert_eq!(actual, expected);
+
+        // All nullables null
+
+        let mut actual = vec![];
+        let id = Uuid::new_v4();
+        let tuple: Tuple = vec![
+            Some(Datum::Uuid(id)),
+            Some(Datum::Float(123.456)),
+            None,
+            None,
+            Some(Datum::Text("john.doe@example.com".to_string())),
+            Some(Datum::Integer(123)),
+        ];
+
+        serialize_tuple(&mut actual, &schema, &tuple).unwrap();
+
+        let mut expected = vec![];
+        serialize_uuid(&mut expected, id).unwrap();
+        serialize_float(&mut expected, 123.456).unwrap();
+        serialize_null(&mut expected, true).unwrap();
+        serialize_null(&mut expected, true).unwrap();
+        serialize_text(&mut expected, "john.doe@example.com").unwrap();
+        serialize_int(&mut expected, 123).unwrap();
+
+        assert_eq!(actual, expected);
     }
 }
