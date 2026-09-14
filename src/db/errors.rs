@@ -14,4 +14,7 @@ pub enum Error {
     InvalidUtf8(String),
     // Tagged text length was greater than number of bytes available
     NotEnoughTextBytes { len: usize, bytes_read: usize },
+    // Attempted to serialize text with length greater than u16::MAX (65,535).
+    // Contains length of unserializable text
+    TextOverflow(usize),
 }

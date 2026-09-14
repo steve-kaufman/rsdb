@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::db::DataType;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseId {
     db_name: String,
@@ -30,14 +32,6 @@ pub struct TableSchema {
 pub struct ColumnSchema {
     pub name: String,
     pub data_type: DataType,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum DataType {
-    Integer,
-    Float,
-    Text,
-    Uuid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
