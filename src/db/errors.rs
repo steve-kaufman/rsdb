@@ -38,6 +38,8 @@ pub enum Error {
     NullMismatch {
         column_definition: ColumnDefinition,
     },
+    // Tried to deserialize with an empty schema
+    DeserializeEmptySchema,
 }
 
 impl Error {
