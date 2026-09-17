@@ -1,21 +1,17 @@
 pub mod constants;
-pub mod datum;
-pub mod deserializers;
 pub mod errors;
 pub mod heapcache;
+pub mod index;
 pub mod page_id;
 pub mod pagedfile;
 pub mod schema;
-pub mod serializers;
-pub mod tuple;
+pub mod tuples;
 
 pub use constants::*;
-pub use datum::*;
-pub use deserializers::*;
 pub use errors::*;
 pub use heapcache::*;
+pub use index::*;
 pub use page_id::*;
 pub use pagedfile::*;
 pub use schema::*;
-pub use serializers::*;
-pub use tuple::*;
+pub use tuples::*;

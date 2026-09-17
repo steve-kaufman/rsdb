@@ -1,8 +1,6 @@
 use std::io::{Read, Write};
 
-use crate::db::{Datum, Schema, deserialize_datum, serialize_datum};
-
-use super::Error;
+use crate::db::{Datum, Error, Schema, deserialize_datum, serialize_datum};
 
 pub type Tuple = Vec<Option<Datum>>;
 
