@@ -1,6 +1,8 @@
+use std::{fmt::Display, hash::Hash};
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct PageId {
     pub db_name: String,
     pub schema_name: String,
@@ -22,11 +24,31 @@ impl PageId {
             page_no,
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
-        format!(
+impl Display for PageId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "{}.{}.{}.{}",
             self.db_name, self.schema_name, self.collection_name, self.page_no
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_page_id_to_string() {
+        let page_id = PageId::new(
+            "MY_DB".to_string(),
+            "MY_SCHEMA".to_string(),
+            "MY_TABLE".to_string(),
+            2,
+        );
+
+        assert_eq!(page_id.to_string(), "MY_DB.MY_SCHEMA.MY_TABLE.2")
     }
 }
