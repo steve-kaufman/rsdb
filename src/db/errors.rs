@@ -2,8 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::db::{ColumnDefinition, Datum};
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Error {
+    // Arbitrary Error
+    Other(String),
     // Error during I/O operation, e.g. read
     IO(String),
     // General error during deserialization
