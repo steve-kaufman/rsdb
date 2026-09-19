@@ -89,6 +89,10 @@ where
         self.nodes.update_node(0, &root)
     }
 
+    pub fn update(&mut self, key: &K, value: V) -> Result<bool> {
+        self.update_in_node(0, key, value)
+    }
+
     fn get_from_node(&self, key: &K, node: &Node<K, V>) -> Result<Option<V>> {
         match node {
             Node::Leaf(leaf) => Ok(self.get_from_leaf(key, leaf)),
@@ -230,6 +234,46 @@ where
             new_right,
         ]));
         Ok(())
+    }
+
+    fn update_in_node(&mut self, pointer: usize, k: &K, v: V) -> Result<bool> {
+        let mut node = self.nodes.get_node(pointer)?;
+        match &mut node {
+            Node::Leaf(leaf) => {
+                let was_updated = self.update_in_leaf(leaf, k, v);
+                if was_updated {
+                    self.nodes.update_node(pointer, &node)?;
+                }
+                Ok(was_updated)
+            }
+            Node::Inner(inner) => self.update_in_inner(inner, k, v),
+        }
+    }
+
+    fn update_in_leaf(&mut self, leaf: &mut LeafNode<K, V>, k: &K, v: V) -> bool {
+        for entry in leaf.entries.iter_mut() {
+            if &entry.key == k {
+                entry.value = v;
+                return true;
+            } else {
+                println!("{:?} != {:?}", &entry.key, k);
+            }
+        }
+        false
+    }
+
+    fn update_in_inner(&mut self, inner: &mut InnerNode<K>, k: &K, v: V) -> Result<bool> {
+        let child_index = self.find_update_child_index(inner, k);
+        self.update_in_node(inner.pointers[child_index].index, k, v)
+    }
+
+    fn find_update_child_index(&self, inner: &InnerNode<K>, k: &K) -> usize {
+        for i in 0..(inner.pointers.len() - 1) {
+            if &inner.pointers[i + 1].key > k {
+                return i;
+            }
+        }
+        inner.pointers.len() - 1
     }
 }
 
@@ -579,5 +623,155 @@ mod tests {
         println!("{:#?}", expected);
 
         assert_eq!(actual.as_ref(), expected);
+    }
+
+    #[test]
+    fn test_update() {
+        let nodes = vec![
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(1, 6),
+                NodePointer::new(5, 5),
+            ]))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(5, "5".to_string()),
+                    Entry::new(6, "6".to_string()),
+                ],
+                Some(3),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(1, "1".to_string()),
+                    Entry::new(2, "2".to_string()),
+                ],
+                Some(4),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(7, "7".to_string()),
+                    Entry::new(8, "8".to_string()),
+                ],
+                None,
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(3, "3".to_string()),
+                    Entry::new(4, "4".to_string()),
+                ],
+                Some(1),
+            ))),
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(5, 1),
+                NodePointer::new(7, 3),
+            ]))),
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(1, 2),
+                NodePointer::new(3, 4),
+            ]))),
+        ];
+
+        let nodes = Arc::new(Mutex::new(nodes));
+
+        let node_source = Box::new(VecNodeSource::new(nodes.clone()));
+
+        let mut btree = BTree::new(3, node_source);
+
+        let was_updated = btree.update(&3, "new value".to_string()).unwrap();
+
+        assert!(was_updated);
+
+        let expected = vec![
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(1, 6),
+                NodePointer::new(5, 5),
+            ]))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(5, "5".to_string()),
+                    Entry::new(6, "6".to_string()),
+                ],
+                Some(3),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(1, "1".to_string()),
+                    Entry::new(2, "2".to_string()),
+                ],
+                Some(4),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(7, "7".to_string()),
+                    Entry::new(8, "8".to_string()),
+                ],
+                None,
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(3, "new value".to_string()),
+                    Entry::new(4, "4".to_string()),
+                ],
+                Some(1),
+            ))),
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(5, 1),
+                NodePointer::new(7, 3),
+            ]))),
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(1, 2),
+                NodePointer::new(3, 4),
+            ]))),
+        ];
+
+        assert_eq!(nodes.lock().unwrap().as_ref(), expected);
+
+        let was_updated = btree.update(&12, "new value".to_string()).unwrap();
+
+        assert!(!was_updated);
+
+        let expected = vec![
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(1, 6),
+                NodePointer::new(5, 5),
+            ]))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(5, "5".to_string()),
+                    Entry::new(6, "6".to_string()),
+                ],
+                Some(3),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(1, "1".to_string()),
+                    Entry::new(2, "2".to_string()),
+                ],
+                Some(4),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(7, "7".to_string()),
+                    Entry::new(8, "8".to_string()),
+                ],
+                None,
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(3, "new value".to_string()),
+                    Entry::new(4, "4".to_string()),
+                ],
+                Some(1),
+            ))),
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(5, 1),
+                NodePointer::new(7, 3),
+            ]))),
+            Some(Node::Inner(InnerNode::new(vec![
+                NodePointer::new(1, 2),
+                NodePointer::new(3, 4),
+            ]))),
+        ];
+
+        assert_eq!(nodes.lock().unwrap().as_ref(), expected);
     }
 }
