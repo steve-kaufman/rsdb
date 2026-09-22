@@ -311,149 +311,110 @@ mod insert {
     }
 }
 
-// mod update {
-//     use super::*;
-//
-//     #[test]
-//     fn update() {
-//         let mut tc = StdTestCase::new(
-//             3,
-//             vec![
-//                 Some(Node::Inner(InnerNode::new(vec![
-//                     NodePointer::new(1, 6),
-//                     NodePointer::new(5, 5),
-//                 ]))),
-//                 Some(Node::Leaf(LeafNode::new(
-//                     vec![
-//                         Entry::new(5, "5".to_string()),
-//                         Entry::new(6, "6".to_string()),
-//                     ],
-//                     Some(3),
-//                 ))),
-//                 Some(Node::Leaf(LeafNode::new(
-//                     vec![
-//                         Entry::new(1, "1".to_string()),
-//                         Entry::new(2, "2".to_string()),
-//                     ],
-//                     Some(4),
-//                 ))),
-//                 Some(Node::Leaf(LeafNode::new(
-//                     vec![
-//                         Entry::new(7, "7".to_string()),
-//                         Entry::new(8, "8".to_string()),
-//                     ],
-//                     None,
-//                 ))),
-//                 Some(Node::Leaf(LeafNode::new(
-//                     vec![
-//                         Entry::new(3, "3".to_string()),
-//                         Entry::new(4, "4".to_string()),
-//                     ],
-//                     Some(1),
-//                 ))),
-//                 Some(Node::Inner(InnerNode::new(vec![
-//                     NodePointer::new(5, 1),
-//                     NodePointer::new(7, 3),
-//                 ]))),
-//                 Some(Node::Inner(InnerNode::new(vec![
-//                     NodePointer::new(1, 2),
-//                     NodePointer::new(3, 4),
-//                 ]))),
-//             ],
-//         );
-//
-//         let was_updated = tc.btree.update(&3, "new value".to_string()).unwrap();
-//         assert!(was_updated);
-//         tc.assert_nodes_eq(vec![
-//             Some(Node::Inner(InnerNode::new(vec![
-//                 NodePointer::new(1, 6),
-//                 NodePointer::new(5, 5),
-//             ]))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(5, "5".to_string()),
-//                     Entry::new(6, "6".to_string()),
-//                 ],
-//                 Some(3),
-//             ))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(1, "1".to_string()),
-//                     Entry::new(2, "2".to_string()),
-//                 ],
-//                 Some(4),
-//             ))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(7, "7".to_string()),
-//                     Entry::new(8, "8".to_string()),
-//                 ],
-//                 None,
-//             ))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(3, "new value".to_string()),
-//                     Entry::new(4, "4".to_string()),
-//                 ],
-//                 Some(1),
-//             ))),
-//             Some(Node::Inner(InnerNode::new(vec![
-//                 NodePointer::new(5, 1),
-//                 NodePointer::new(7, 3),
-//             ]))),
-//             Some(Node::Inner(InnerNode::new(vec![
-//                 NodePointer::new(1, 2),
-//                 NodePointer::new(3, 4),
-//             ]))),
-//         ]);
-//
-//         let was_updated = tc.btree.update(&12, "new value".to_string()).unwrap();
-//         assert!(!was_updated);
-//         tc.assert_nodes_eq(vec![
-//             Some(Node::Inner(InnerNode::new(vec![
-//                 NodePointer::new(1, 6),
-//                 NodePointer::new(5, 5),
-//             ]))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(5, "5".to_string()),
-//                     Entry::new(6, "6".to_string()),
-//                 ],
-//                 Some(3),
-//             ))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(1, "1".to_string()),
-//                     Entry::new(2, "2".to_string()),
-//                 ],
-//                 Some(4),
-//             ))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(7, "7".to_string()),
-//                     Entry::new(8, "8".to_string()),
-//                 ],
-//                 None,
-//             ))),
-//             Some(Node::Leaf(LeafNode::new(
-//                 vec![
-//                     Entry::new(3, "new value".to_string()),
-//                     Entry::new(4, "4".to_string()),
-//                 ],
-//                 Some(1),
-//             ))),
-//             Some(Node::Inner(InnerNode::new(vec![
-//                 NodePointer::new(5, 1),
-//                 NodePointer::new(7, 3),
-//             ]))),
-//             Some(Node::Inner(InnerNode::new(vec![
-//                 NodePointer::new(1, 2),
-//                 NodePointer::new(3, 4),
-//             ]))),
-//         ]);
-//     }
-// }
-//
+mod update {
+    use super::*;
+
+    #[test]
+    fn empty() {
+        // Empty
+        let mut tc = StdTestCase::new(3, vec![Some(Node::Leaf(LeafNode::new(vec![], None)))]);
+        assert_eq!(tc.btree.update(&1, "foo".to_string()), Ok(false));
+    }
+
+    #[test]
+    fn three_entries() {
+        let mut tc = StdTestCase::new(
+            3,
+            vec![Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(1, "foo".to_string()),
+                    Entry::new(2, "bar".to_string()),
+                    Entry::new(3, "baz".to_string()),
+                ],
+                None,
+            )))],
+        );
+
+        assert_eq!(tc.btree.update(&1, "new foo".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&2, "new bar".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&3, "new baz".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&4, "new baz".to_string()), Ok(false));
+
+        tc.assert_nodes_eq(vec![Some(Node::Leaf(LeafNode::new(
+            vec![
+                Entry::new(1, "new foo".to_string()),
+                Entry::new(2, "new bar".to_string()),
+                Entry::new(3, "new baz".to_string()),
+            ],
+            None,
+        )))]);
+    }
+
+    #[test]
+    fn nested() {
+        let mut tc = StdTestCase::new(
+            3,
+            vec![
+                Some(Node::Inner(InnerNode::new(vec![1, 3, 2], vec![3, 10]))),
+                Some(Node::Leaf(LeafNode::new(
+                    vec![
+                        Entry::new(1, "foo".to_string()),
+                        Entry::new(2, "bar".to_string()),
+                    ],
+                    Some(3),
+                ))),
+                Some(Node::Leaf(LeafNode::new(
+                    vec![
+                        Entry::new(10, "foo10".to_string()),
+                        Entry::new(11, "bar11".to_string()),
+                    ],
+                    None,
+                ))),
+                Some(Node::Leaf(LeafNode::new(
+                    vec![
+                        Entry::new(3, "foo3".to_string()),
+                        Entry::new(5, "bar5".to_string()),
+                    ],
+                    Some(2),
+                ))),
+            ],
+        );
+
+        assert_eq!(tc.btree.update(&1, "new foo".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&2, "new bar".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&3, "new foo3".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&4, "new 4".to_string()), Ok(false));
+        assert_eq!(tc.btree.update(&5, "new bar5".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&10, "new foo10".to_string()), Ok(true));
+        assert_eq!(tc.btree.update(&11, "new bar11".to_string()), Ok(true));
+
+        tc.assert_nodes_eq(vec![
+            Some(Node::Inner(InnerNode::new(vec![1, 3, 2], vec![3, 10]))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(1, "new foo".to_string()),
+                    Entry::new(2, "new bar".to_string()),
+                ],
+                Some(3),
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(10, "new foo10".to_string()),
+                    Entry::new(11, "new bar11".to_string()),
+                ],
+                None,
+            ))),
+            Some(Node::Leaf(LeafNode::new(
+                vec![
+                    Entry::new(3, "new foo3".to_string()),
+                    Entry::new(5, "new bar5".to_string()),
+                ],
+                Some(2),
+            ))),
+        ]);
+    }
+}
+
 // mod delete {
 //     use super::*;
 //
