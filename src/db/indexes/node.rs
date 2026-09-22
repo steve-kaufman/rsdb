@@ -1,18 +1,6 @@
 use crate::db::Result;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct NodePointer<K> {
-    pub key: K,
-    pub pointer: usize,
-}
-
-impl<K> NodePointer<K> {
-    pub fn new(key: K, pointer: usize) -> Self {
-        Self { key, pointer }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub struct Entry<K, V> {
     pub key: K,
     pub value: V,
@@ -26,12 +14,13 @@ impl<K, V> Entry<K, V> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct InnerNode<K> {
-    pub pointers: Vec<NodePointer<K>>,
+    pub pointers: Vec<usize>,
+    pub keys: Vec<K>,
 }
 
 impl<K> InnerNode<K> {
-    pub fn new(pointers: Vec<NodePointer<K>>) -> Self {
-        Self { pointers }
+    pub fn new(pointers: Vec<usize>, keys: Vec<K>) -> Self {
+        Self { pointers, keys }
     }
 }
 
