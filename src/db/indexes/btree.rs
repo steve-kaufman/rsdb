@@ -140,50 +140,6 @@ where
         self.update_in_node(inner.pointers[child_index], k, v)
     }
 
-    // pub fn delete(&mut self, key: &K) -> Result<bool> {
-    //     self.delete_from_node(0, key).map(|res| res.is_some())
-    // }
-    //
-    // fn delete_from_node(&mut self, pointer: usize, key: &K) -> Result<Option<Node<K, V>>> {
-    //     let mut node = self.nodes.get_node(pointer)?;
-    //     match &mut node {
-    //         Node::Leaf(leaf) => {
-    //             let was_deleted = self.delete_from_leaf(key, leaf);
-    //             if was_deleted {
-    //                 self.nodes.update_node(pointer, &node)?;
-    //                 Ok(Some(node))
-    //             } else {
-    //                 Ok(None)
-    //             }
-    //         }
-    //         Node::Inner(inner) => {
-    //             let child_index = self.find_child_index(key, inner);
-    //             let child = self.delete_from_node(inner.pointers[child_index], key)?;
-    //             if let Some(child) = child {
-    //                 if let Node::Leaf(child_leaf) = child
-    //                     && child_leaf.entries[0].key != inner.pointers[child_index].key
-    //                 {
-    //                     inner.pointers[child_index].key = child_leaf.entries[0].key.clone();
-    //                     self.nodes.update_node(pointer, &node)?;
-    //                 }
-    //                 Ok(Some(node))
-    //             } else {
-    //                 Ok(None)
-    //             }
-    //         }
-    //     }
-    // }
-    //
-    // fn delete_from_leaf(&mut self, key: &K, leaf: &mut LeafNode<K, V>) -> bool {
-    //     let entry_index = self.find_entry_index(key, leaf);
-    //     if let Some(entry_index) = entry_index {
-    //         leaf.entries.remove(entry_index);
-    //         true
-    //     } else {
-    //         false
-    //     }
-    // }
-
     fn split_leaf(&mut self, leaf: &mut LeafNode<K, V>) -> Result<(K, usize)> {
         let split_index = self.order.div_ceil(2);
 

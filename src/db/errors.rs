@@ -46,6 +46,8 @@ pub enum Error {
     DeserializeEmptySchema,
     // Tried to write an incorrect number of bytes as a page
     InvalidPageSize(usize),
+    // Found an unbalanced BTree
+    UnbalancedTree(String),
 }
 
 impl Error {
